@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>관리자 | 줄다리기 수학 대결</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0f172a;--panel:#1e293b;--border:#334155;--accent:#3b82f6;--red:#ef4444;--green:#22c55e;--amber:#f59e0b;--ink:#f1f5f9;--muted:#94a3b8;--radius:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{background:linear-gradient(90deg,#1e3a5f,#0f172a);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+header h1{font-family:'Black Han Sans',sans-serif;font-size:20px;color:#fff}
+.badge{padding:4px 12px;border-radius:99px;font-size:12px;font-weight:900;background:#1e293b;border:1px solid var(--border);color:var(--muted)}
+.badge.running{background:rgba(245,158,11,.15);border-color:var(--amber);color:var(--amber)}
+.badge.ended{background:rgba(239,68,68,.12);border-color:var(--red);color:#f87171}
+.main{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:#0f1f35;border-right:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;border:none;background:transparent;width:100%;text-align:left}
+.nav-item:hover,.nav-item.active{background:#1e3a5f;color:#fff}
+.content{padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#0f172a;border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat .lbl{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}
+.stat .val{font-size:26px;font-weight:900;color:#fff;font-family:'Black Han Sans',sans-serif}
+.val.blue{color:#60a5fa}.val.red{color:#f87171}.val.green{color:var(--green)}.val.amber{color:var(--amber)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:12px;color:var(--muted);font-weight:700}
+select,input[type=number],input[type=text]{background:#0f172a;border:1px solid var(--border);border-radius:8px;color:var(--ink);padding:9px 12px;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%}
+select:focus,input:focus{border-color:var(--accent)}
+.team-row{display:flex;gap:8px}
+.team-row input{flex:1}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:12px 18px;border-radius:10px;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:900;font-size:14px;transition:all .15s;flex:1;min-width:90px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#2563eb}
+.btn-gray{background:#334155;color:var(--ink)}.btn-gray:hover{background:#475569}
+.btn-danger{background:#7f1d1d;color:#fca5a5;border:1px solid var(--red)}.btn-danger:hover{background:var(--red);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.log-list{background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:8px;max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.log-entry{font-size:12px;padding:4px 7px;border-radius:5px;display:flex;gap:8px}
+.log-entry:nth-child(odd){background:#1a2744}
+.log-entry .t{color:#64748b;min-width:54px;font-size:11px}
+.log-entry .m{color:var(--ink)}
+.rank-table{width:100%;border-collapse:collapse}
+.rank-table th{background:#0f172a;border-bottom:1px solid var(--border);padding:9px 7px;text-align:left;font-size:11px;color:var(--muted);font-weight:700}
+.rank-table td{padding:9px 7px;border-bottom:1px solid #1e293b;font-size:12px}
+.rank-table tr:hover td{background:#1e293b}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:900}
+.tag.win{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.tag.lose{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.tag.draw{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.hidden{display:none}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;margin-right:5px;transition:all .3s}
+.conn-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.conn-dot.err{background:var(--red)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 줄다리기 수학 대결 — 관리자</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:12px;color:var(--muted)"><span class="conn-dot" id="connDot"></span><span id="connTxt">Firebase 연결중…</span></span>
+    <span id="stateBadge" class="badge">대기중</span>
+    <a href="intro.html" style="color:var(--muted);font-size:12px;text-decoration:none">← 메인</a>
+  </div>
+</header>
+<div class="main">
+  <nav class="sidebar">
+    <button class="nav-item active" onclick="nav('dashboard',this)">📊 대시보드</button>
+    <button class="nav-item" onclick="nav('settings',this)">⚙️ 게임 설정</button>
+    <button class="nav-item" onclick="nav('ranking',this)">🏅 랭킹</button>
+    <div style="flex:1"></div>
+    <a href="intro.html" style="color:#334155;font-size:12px;padding:8px;text-decoration:none">← 메인으로</a>
+  </nav>
+  <div class="content">
+
+    <section id="sec-dashboard">
+      <div class="card">
+        <div class="card-title">실시간 현황</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="lbl">학년/레벨</div><div class="val amber" id="d-grade">-</div></div>
+          <div class="stat"><div class="lbl">제한 시간</div><div class="val" id="d-dur">-</div></div>
+          <div class="stat"><div class="lbl">남은 시간</div><div class="val green" id="d-left">-</div></div>
+          <div class="stat"><div class="lbl">Team 1 점수</div><div class="val blue" id="d-t1s">0</div></div>
+          <div class="stat"><div class="lbl">Team 2 점수</div><div class="val red" id="d-t2s">0</div></div>
+          <div class="stat"><div class="lbl">줄 위치</div><div class="val" id="d-tug">0%</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">게임 컨트롤</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnStart" onclick="cmdStart()">▶ 게임 시작</button>
+          <button class="btn btn-gray" id="btnPause" onclick="cmdPause()" disabled>⏸ 일시정지</button>
+          <button class="btn btn-danger" onclick="cmdReset()">🔄 리셋</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">실시간 로그</div>
+        <div class="log-list" id="logList"><div class="log-entry"><span class="t">--:--</span><span class="m">게임 시작을 누르세요</span></div></div>
+        <button class="btn btn-gray" style="margin-top:8px;flex:none;padding:7px 12px;font-size:12px" onclick="clearLog()">로그 삭제</button>
+      </div>
+    </section>
+
+    <section id="sec-settings" class="hidden">
+      <div class="card">
+        <div class="card-title">게임 설정</div>
+        <div class="sg">
+          <div class="fg">
+            <label>학년 선택 (레벨)</label>
+            <select id="grade">
+              <option value="1">1학년 — Level 1 (한자리 덧셈·뺄셈)</option>
+              <option value="2">2학년 — Level 2 (두자리 덧셈·뺄셈)</option>
+              <option value="3" selected>3학년 — Level 3 (세자리 혼합)</option>
+              <option value="4">4학년 — Level 4 (곱셈구구)</option>
+              <option value="5">5학년 — Level 5 (두자리×한자리, ÷)</option>
+              <option value="6">6학년 — Level 6 (11~19단)</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>제한 시간 (초)</label>
+            <input type="number" id="duration" min="15" max="300" value="60"/>
+          </div>
+          <div class="fg" style="grid-column:1/-1">
+            <label>팀 이름</label>
+            <div class="team-row">
+              <input type="text" id="t1Name" placeholder="Team 1" style="border-left:3px solid #3b82f6"/>
+              <input type="text" id="t2Name" placeholder="Team 2" style="border-left:3px solid #ef4444"/>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;color:var(--muted);font-size:12px;line-height:1.8">
+          ✅ 양팀 문제 유형 동일 출제 &nbsp;|&nbsp; ✅ 오답 시 3% 줄 이동 &nbsp;|&nbsp; ✅ ±100 도달 시 즉시 종료
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-ranking" class="hidden">
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🏅 랭킹</span>
+          <button class="btn btn-danger" style="flex:none;padding:6px 12px;font-size:11px" onclick="clearRanking()">초기화</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="rank-table">
+            <thead><tr><th>순위</th><th>날짜</th><th>학년</th><th>팀</th><th>결과</th><th>점수</th><th>정답률</th></tr></thead>
+            <tbody id="rankBody"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">기록 없음</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script type="module">
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const ROOT = 'tug_game';
+
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const RKEY='bridge_tug_v3';
+
+  // Firebase 연결 상태 표시
+  const connRef = ref(db, '.info/connected');
+  onValue(connRef, snap => {
+    const ok = snap.val();
+    document.getElementById('connDot').className = 'conn-dot ' + (ok ? 'ok' : 'err');
+    document.getElementById('connTxt').textContent = ok ? 'Firebase 연결됨' : '연결 끊김';
+  });
+
+  // ── 레벨 정의 ──
+  function gradeProfile(g){
+    const G=Number(g);
+    if(G===1) return {grade:G,label:'Level1',ops:['add','sub'],add:{a:[1,9],b:[1,9]},sub:{a:[10,19],b:[1,9]},mul:null,div:null};
+    if(G===2) return {grade:G,label:'Level2',ops:['add','sub'],add:{a:[10,99],b:[10,99],carry:.93},sub:{a:[10,99],b:[1,99],borrow:.93},mul:null,div:null};
+    if(G===3) return {grade:G,label:'Level3',ops:['add','sub'],add:{a:[100,999],b:[100,999],carry:.93},sub:{a:[200,999],b:[100,499],borrow:.93},mul:null,div:null};
+    if(G===4) return {grade:G,label:'Level4',ops:['mul'],add:null,sub:null,mul:{a:[2,9],b:[2,9]},div:null};
+    if(G===5) return {grade:G,label:'Level5',ops:['mul','div'],add:null,sub:null,mul:{a:[11,99],b:[2,9]},div:{a:[2,9],b:[2,9]}};
+    return {grade:G,label:'Level6',ops:['mul'],add:null,sub:null,mul:{a:[11,19],b:[11,19]},div:null};
+  }
+
+  function genQ(profile, op){
+    const cfg=profile[op]; let a,b,ans,text;
+    if(op==='add'){
+      if(cfg.carry&&Math.random()<cfg.carry){do{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);}while((a%10+b%10)<10);}
+      else{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);}
+      ans=a+b; text=a+' + '+b+' = ?';
+    } else if(op==='sub'){
+      if(cfg.borrow&&Math.random()<cfg.borrow){do{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);}while(b>=a||(a%10)>=(b%10)||a-b<10);}
+      else{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);if(b>a){let t=a;a=b;b=t;}}
+      ans=a-b; text=a+' − '+b+' = ?';
+    } else if(op==='mul'){
+      a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);
+      ans=a*b; text=a+' × '+b+' = ?';
+    } else {
+      const x=rnd(cfg.a[0],cfg.a[1]);const y=rnd(cfg.b[0],cfg.b[1]);
+      a=x*y;b=x;ans=y; text=a+' ÷ '+b+' = ?';
+    }
+    return {op,ans,text};
+  }
+
+  // ── State ──
+  const state={
+    running:false,paused:false,win:null,
+    timeLeft:60,timerId:null,
+    tug:0,step:10,
+    profile:null,sharedOp:null,
+    t1:{score:0,round:0,attempts:0,correct:0,q:null,name:'Team 1'},
+    t2:{score:0,round:0,attempts:0,correct:0,q:null,name:'Team 2'},
+    duration:60
+  };
+
+  // ── Firebase에 전체 상태 쓰기 ──
+  async function pushState(){
+    await set(ref(db, ROOT+'/state'),{
+      running:state.running, paused:state.paused, win:state.win??0,
+      timeLeft:state.timeLeft, tug:state.tug,
+      t1Score:state.t1.score, t2Score:state.t2.score,
+      t1Name:state.t1.name, t2Name:state.t2.name,
+      t1Q:state.t1.q, t2Q:state.t2.q,
+      grade:state.profile?.grade??0, label:state.profile?.label??'',
+      duration:state.duration,
+      ts:Date.now()
+    });
+  }
+
+  // ── Firebase 답안 수신 ──
+  onValue(ref(db, ROOT+'/answers'), snap=>{
+    const data=snap.val();
+    if(!data) return;
+    Object.entries(data).forEach(([k,v])=>{
+      if(!v.handled) handleAnswer(v.team, v.answer, k);
+    });
+  });
+
+  async function handleAnswer(team, answer, key){
+    if(!state.running||state.paused||state.win) return;
+    // 중복 방지: handled 표시
+    await set(ref(db, ROOT+'/answers/'+key), {team, answer, handled:true});
+    const T=team===1?state.t1:state.t2;
+    if(!T.q) return;
+    T.attempts++;
+    if(Number(answer)===T.q.ans){
+      T.correct++; T.score++;
+      state.tug=team===1?clamp(state.tug-state.step,-100,100):clamp(state.tug+state.step,-100,100);
+      addLog((T.name)+' 정답! (+1점)','✅');
+      state.sharedOp=pickOp(state.profile);
+      T.q=genQ(state.profile,state.sharedOp);
+      const O=team===1?state.t2:state.t1;
+      O.q=genQ(state.profile,state.sharedOp);
+      await pushState();
+      checkWin();
+    } else {
+      state.tug=team===1?clamp(state.tug+3,-100,100):clamp(state.tug-3,-100,100);
+      addLog((T.name)+' 오답!','❌');
+      await pushState();
+    }
+    updateDash();
+  }
+
+  function pickOp(p){return p.ops[Math.floor(Math.random()*p.ops.length)];}
+
+  function checkWin(){
+    if(state.tug<=-100) doEnd(1);
+    else if(state.tug>=100) doEnd(2);
+  }
+
+  async function doEnd(winner){
+    state.running=false; state.win=winner??0;
+    clearInterval(state.timerId);
+    const w=winner===1?state.t1.name:winner===2?state.t2.name:'무승부';
+    addLog('게임 종료! '+w+(winner?' 승리!':' 무승부!'),'🏆');
+    await pushState();
+    saveRanking();
+    renderRanking();
+    updateDash();
+    document.getElementById('btnStart').textContent='▶ 다시 시작';
+    document.getElementById('btnStart').disabled=false;
+    document.getElementById('btnPause').disabled=true;
+    document.getElementById('stateBadge').textContent='종료';
+    document.getElementById('stateBadge').className='badge ended';
+  }
+
+  window.cmdStart=async function(){
+    const g=document.getElementById('grade').value;
+    const dur=Number(document.getElementById('duration').value)||60;
+    state.profile=gradeProfile(g);
+    state.duration=dur; state.timeLeft=dur;
+    state.running=true; state.paused=false; state.win=null;
+    state.tug=0; state.step=10;
+    state.t1={score:0,round:0,attempts:0,correct:0,q:null,name:(document.getElementById('t1Name').value||'Team 1').trim()};
+    state.t2={score:0,round:0,attempts:0,correct:0,q:null,name:(document.getElementById('t2Name').value||'Team 2').trim()};
+    state.sharedOp=pickOp(state.profile);
+    state.t1.q=genQ(state.profile,state.sharedOp);
+    state.t2.q=genQ(state.profile,state.sharedOp);
+    // 이전 답안 초기화
+    await set(ref(db, ROOT+'/answers'), null);
+    document.getElementById('btnStart').textContent='진행중…';
+    document.getElementById('btnStart').disabled=true;
+    document.getElementById('btnPause').disabled=false;
+    document.getElementById('stateBadge').textContent='게임 진행중';
+    document.getElementById('stateBadge').className='badge running';
+    addLog('게임 시작! '+state.profile.grade+'학년 ('+state.profile.label+') · '+dur+'초','🚩');
+    await pushState();
+    updateDash();
+    if(state.timerId) clearInterval(state.timerId);
+    state.timerId=setInterval(tick,1000);
+  };
+
+  window.cmdPause=async function(){
+    if(!state.running||state.win) return;
+    state.paused=!state.paused;
+    document.getElementById('btnPause').textContent=state.paused?'▶ 재개':'⏸ 일시정지';
+    addLog(state.paused?'일시정지':'재개',state.paused?'⏸':'▶');
+    await pushState();
+  };
+
+  window.cmdReset=async function(){
+    state.running=false; state.paused=false; state.win=null;
+    clearInterval(state.timerId); state.timerId=null;
+    state.tug=0;
+    state.t1={score:0,round:0,attempts:0,correct:0,q:null,name:'Team 1'};
+    state.t2={score:0,round:0,attempts:0,correct:0,q:null,name:'Team 2'};
+    state.timeLeft=Number(document.getElementById('duration').value)||60;
+    document.getElementById('btnStart').textContent='▶ 게임 시작';
+    document.getElementById('btnStart').disabled=false;
+    document.getElementById('btnPause').textContent='⏸ 일시정지';
+    document.getElementById('btnPause').disabled=true;
+    document.getElementById('stateBadge').textContent='대기중';
+    document.getElementById('stateBadge').className='badge';
+    addLog('리셋 완료','🔄');
+    await set(ref(db, ROOT+'/answers'), null);
+    await pushState();
+    updateDash();
+  };
+
+  async function tick(){
+    if(!state.running||state.paused||state.win) return;
+    state.timeLeft--;
+    await pushState();
+    updateDash();
+    if(state.timeLeft<=0){
+      const w=state.tug<0?1:state.tug>0?2:state.t1.score>state.t2.score?1:state.t2.score>state.t1.score?2:0;
+      doEnd(w||null);
+    }
+  }
+
+  function updateDash(){
+    const p=state.profile;
+    document.getElementById('d-grade').textContent=p?(p.grade+'학년 '+p.label):'-';
+    document.getElementById('d-dur').textContent=state.duration?state.duration+'초':'-';
+    document.getElementById('d-left').textContent=state.running?state.timeLeft+'초':'-';
+    document.getElementById('d-t1s').textContent=state.t1.score;
+    document.getElementById('d-t2s').textContent=state.t2.score;
+    document.getElementById('d-tug').textContent=(state.tug>0?'+':'')+state.tug+'%';
+  }
+
+  function addLog(msg,icon='•'){
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    const time=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+    const list=document.getElementById('logList');
+    const el=document.createElement('div');
+    el.className='log-entry';
+    el.innerHTML='<span class="t">'+time+'</span><span class="m">'+icon+' '+msg+'</span>';
+    list.insertBefore(el,list.firstChild);
+    if(list.children.length>40) list.removeChild(list.lastChild);
+  }
+  window.clearLog=()=>{ document.getElementById('logList').innerHTML=''; };
+
+  function loadRank(){try{const r=localStorage.getItem(RKEY);return r?JSON.parse(r):[]}catch{return[]}}
+  function saveRankData(d){localStorage.setItem(RKEY,JSON.stringify(d));}
+  function saveRanking(){
+    const list=loadRank();
+    const nowStr=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());};
+    const base={date:nowStr(),grade:state.profile?.grade||'-',duration:state.duration};
+    list.push({...base,name:state.t1.name,result:state.win===1?'win':state.win===2?'lose':'draw',score:state.t1.score,rate:state.t1.attempts?Math.round(state.t1.correct/state.t1.attempts*100):0});
+    list.push({...base,name:state.t2.name,result:state.win===2?'win':state.win===1?'lose':'draw',score:state.t2.score,rate:state.t2.attempts?Math.round(state.t2.correct/state.t2.attempts*100):0});
+    saveRankData(list.slice(-80));
+  }
+  window.clearRanking=()=>{if(confirm('랭킹 초기화?')){localStorage.removeItem(RKEY);renderRanking();}};
+  function renderRanking(){
+    const list=[...loadRank()].sort((a,b)=>b.score-a.score);
+    const body=document.getElementById('rankBody');
+    if(!list.length){body.innerHTML='<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">기록 없음</td></tr>';return;}
+    body.innerHTML=list.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+r.grade+'학년</td><td>'+r.name+'</td><td><span class="tag '+r.result+'">'+(r.result==='win'?'승':r.result==='lose'?'패':'무')+'</span></td><td><b>'+r.score+'</b></td><td>'+r.rate+'%</td></tr>').join('');
+  }
+
+  window.nav=function(sec,btn){
+    document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('sec-'+sec).classList.remove('hidden');
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(sec==='ranking') renderRanking();
+  };
+
+  updateDash(); renderRanking();
+</script>
+</body>
+</html>
