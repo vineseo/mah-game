@@ -38,15 +38,7 @@ header h1{font-family:'Black Han Sans',sans-serif;font-size:22px;color:#fff}
 .feedback.show{opacity:1}
 .feedback.ok{background:rgba(34,197,94,.25)}
 .feedback.ng{background:rgba(239,68,68,.2)}
-/* 대기 오버레이 – 키패드 위 영역만 덮음 */
-.waiting{
-  position:absolute;top:0;left:0;right:0;
-  background:rgba(255,241,242,.97);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;z-index:100;
-  padding:24px 18px;
-  border-bottom:3px solid var(--border);
-}
+.waiting{position:absolute;top:0;left:0;right:0;background:rgba(255,241,242,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:100;padding:24px 18px;border-bottom:3px solid var(--border)}
 .waiting h2{font-family:'Black Han Sans',sans-serif;font-size:26px;color:#ef4444}
 .waiting p{color:var(--muted);font-size:14px;font-weight:700;text-align:center;line-height:1.7}
 .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:#ef4444;border-radius:50%;animation:spin 1s linear infinite}
@@ -98,31 +90,25 @@ header h1{font-family:'Black Han Sans',sans-serif;font-size:22px;color:#fff}
   <span id="statusTxt">대기중</span>
   <a href="intro.html" style="color:rgba(255,255,255,.4);font-size:11px;text-decoration:none">← 메인</a>
 </div>
-
 <script type="module">
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  
+  import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBC5T4KvABXWy3-dlTkqBpNxAF71g-VCLk",
+    authDomain: "math-game-985db.firebaseapp.com",
+    databaseURL: "https://math-game-985db-default-rtdb.firebaseio.com",
+    projectId: "math-game-985db",
+    storageBucket: "math-game-985db.firebasestorage.app",
+    messagingSenderId: "938654639542",
+    appId: "1:938654639542:web:c8ea735c7952a526680d17"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const ROOT = 'tug_game';
-
-  import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
   let currentVal='', gameRunning=false;
 
-  // Firebase 연결 상태
   onValue(ref(db,'.info/connected'), snap=>{
     const ok=snap.val();
     const b=document.getElementById('connBadge');
@@ -157,30 +143,24 @@ header h1{font-family:'Black Han Sans',sans-serif;font-size:22px;color:#fff}
     setTimeout(()=>el.classList.remove('show'),300);
   }
 
-  // ── Firebase 상태 수신 ──
   onValue(ref(db, ROOT+'/state'), snap=>{
     const d=snap.val();
     if(!d) return;
     const running=d.running&&!d.paused&&!d.win;
     gameRunning=running;
-
     document.getElementById('waiting').style.display=(!d.running&&!d.win)?'flex':'none';
     document.getElementById('myTeamName').textContent='🔴 '+(d.t2Name||'Team 2');
-
     const tl=d.timeLeft??0;
     const tel=document.getElementById('timer');
     tel.textContent=String(tl).padStart(2,'0');
     tel.className='timer-badge'+(tl<=10&&running?' urgent':'');
-
-    document.getElementById('myScore').textContent=d.t1Score_??0;
+    document.getElementById('myScore').textContent=d.t2Score??0;
     document.getElementById('oppScore').textContent=d.t1Score??0;
     document.getElementById('problem').textContent=d.t2Q?.text||'?';
-    document.getElementById('tugDot').style.left=(50+(( d.tug??0)/100)*40)+'%';
-
+    document.getElementById('tugDot').style.left=(50+((d.tug??0)/100)*40)+'%';
     document.getElementById('statusTxt').textContent=
-      d.win?'게임 종료! '+(d.win===1_?(d.t2Name||'Team 2')+' 승리!':'상대팀 승리'):
+      d.win?'게임 종료! '+(d.win===2?(d.t2Name||'Team 2')+' 승리!':'상대팀 승리'):
       d.paused?'⏸ 일시정지':running?'🟢 게임 진행중':'⏳ 대기중';
-
     document.querySelectorAll('.key').forEach(k=>k.disabled=!running);
   });
 
