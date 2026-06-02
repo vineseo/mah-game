@@ -81,7 +81,7 @@ select:focus,input:focus{border-color:var(--accent)}
       <div class="card">
         <div class="card-title">실시간 현황</div>
         <div class="stat-grid">
-          <div class="stat"><div class="lbl">학년/레벨</div><div class="val amber" id="d-grade">-</div></div>
+          <div class="stat"><div class="lbl">레벨</div><div class="val amber" id="d-grade">-</div></div>
           <div class="stat"><div class="lbl">제한 시간</div><div class="val" id="d-dur">-</div></div>
           <div class="stat"><div class="lbl">남은 시간</div><div class="val green" id="d-left">-</div></div>
           <div class="stat"><div class="lbl">Team 1 점수</div><div class="val blue" id="d-t1s">0</div></div>
@@ -109,14 +109,15 @@ select:focus,input:focus{border-color:var(--accent)}
         <div class="card-title">게임 설정</div>
         <div class="sg">
           <div class="fg">
-            <label>학년 선택 (레벨)</label>
+            <label>레벨 선택</label>
             <select id="grade">
-              <option value="1">1학년 — Level 1 (한자리 덧셈·뺄셈)</option>
-              <option value="2">2학년 — Level 2 (두자리 덧셈·뺄셈)</option>
-              <option value="3" selected>3학년 — Level 3 (세자리 혼합)</option>
-              <option value="4">4학년 — Level 4 (곱셈구구)</option>
-              <option value="5">5학년 — Level 5 (두자리×한자리, ÷)</option>
-              <option value="6">6학년 — Level 6 (11~19단)</option>
+              <option value="1">Level 1 (한자리 덧셈·뺄셈)</option>
+              <option value="2">Level 2 (두자리 덧셈·뺄셈)</option>
+              <option value="3" selected>Level 3 (세자리 혼합)</option>
+              <option value="4">Level 4 (곱셈구구)</option>
+              <option value="5">Level 5 (두자리×한자리, ÷)</option>
+              <option value="6">Level 6 (11~19단)</option>
+              <option value="7">Level 7 (종합 마스터)</option>
             </select>
           </div>
           <div class="fg">
@@ -145,7 +146,7 @@ select:focus,input:focus{border-color:var(--accent)}
         </div>
         <div style="overflow-x:auto">
           <table class="rank-table">
-            <thead><tr><th>순위</th><th>날짜</th><th>학년</th><th>팀</th><th>결과</th><th>점수</th><th>정답률</th></tr></thead>
+            <thead><tr><th>순위</th><th>날짜</th><th>레벨</th><th>팀</th><th>결과</th><th>점수</th><th>정답률</th></tr></thead>
             <tbody id="rankBody"><tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">기록 없음</td></tr></tbody>
           </table>
         </div>
@@ -161,13 +162,13 @@ select:focus,input:focus{border-color:var(--accent)}
   import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   
   const firebaseConfig = {
-apiKey: "AIzaSyBC5T4KvABXWy3-dlTkqBpNxAF71g-VCLk",
-authDomain: "math-game-985db.firebaseapp.com",
-databaseURL: "https://math-game-985db-default-rtdb.firebaseio.com",
-projectId: "math-game-985db",
-storageBucket: "math-game-985db.firebasestorage.app",
-messagingSenderId: "938654639542",
-appId: "1:938654639542:web:c8ea735c7952a526680d17"
+    apiKey: "AIzaSyBC5T4KvABXWy3-dlTkqBpNxAF71g-VCLk",
+    authDomain: "math-game-985db.firebaseapp.com",
+    databaseURL: "https://math-game-985db-default-rtdb.firebaseio.com",
+    projectId: "math-game-985db",
+    storageBucket: "math-game-985db.firebasestorage.app",
+    messagingSenderId: "938654639542",
+    appId: "1:938654639542:web:c8ea735c7952a526680d17"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -189,16 +190,94 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
   // ── 레벨 정의 ──
   function gradeProfile(g){
     const G=Number(g);
-    if(G===1) return {grade:G,label:'Level1',ops:['add','sub'],add:{a:[1,9],b:[1,9]},sub:{a:[10,19],b:[1,9]},mul:null,div:null};
-    if(G===2) return {grade:G,label:'Level2',ops:['add','sub'],add:{a:[10,99],b:[10,99],carry:.93},sub:{a:[10,99],b:[1,99],borrow:.93},mul:null,div:null};
-    if(G===3) return {grade:G,label:'Level3',ops:['add','sub'],add:{a:[100,999],b:[100,999],carry:.93},sub:{a:[200,999],b:[100,499],borrow:.93},mul:null,div:null};
-    if(G===4) return {grade:G,label:'Level4',ops:['mul'],add:null,sub:null,mul:{a:[2,9],b:[2,9]},div:null};
-    if(G===5) return {grade:G,label:'Level5',ops:['mul','div'],add:null,sub:null,mul:{a:[11,99],b:[2,9]},div:{a:[2,9],b:[2,9]}};
-    return {grade:G,label:'Level6',ops:['mul'],add:null,sub:null,mul:{a:[11,19],b:[11,19]},div:null};
+    if(G===1) return {grade:G,label:'Level 1',ops:['add','sub'],add:{a:[1,9],b:[1,9]},sub:{a:[10,19],b:[1,9]},mul:null,div:null};
+    if(G===2) return {grade:G,label:'Level 2',ops:['add','sub'],add:{a:[10,99],b:[10,99],carry:.93},sub:{a:[10,99],b:[1,99],borrow:.93},mul:null,div:null};
+    if(G===3) return {grade:G,label:'Level 3',ops:['add','sub'],add:{a:[100,999],b:[100,999],carry:.93},sub:{a:[200,999],b:[100,499],borrow:.93},mul:null,div:null};
+    if(G===4) return {grade:G,label:'Level 4',ops:['mul'],add:null,sub:null,mul:{a:[2,9],b:[2,9]},div:null};
+    if(G===5) return {grade:G,label:'Level 5',ops:['mul','div'],add:null,sub:null,mul:{a:[11,99],b:[2,9]},div:{a:[2,9],b:[2,9]}};
+    if(G===6) return {grade:G,label:'Level 6',ops:['mul'],add:null,sub:null,mul:{a:[11,19],b:[11,19]},div:null};
+    if(G===7) return {grade:G,label:'Level 7',ops:['lvl7_add','lvl7_sub','lvl7_sub_single','lvl7_mul']}; // 분기를 안정적인 전용 오퍼레이션 키로 교체
+    return null;
   }
 
+  // ── 문제 생성기 ──
   function genQ(profile, op){
-    const cfg=profile[op]; let a,b,ans,text;
+    let a, b, ans, text;
+
+    // [Level 7] 전용 연산 처리 분기
+    if (op === 'lvl7_add') {
+      // 두자리 + 두자리 덧셈 (40% 확률 내에서 분기)
+      if (Math.random() < 0.90) { 
+        // 90% 확률: 받아올림 필수 존재
+        // 일의 자리에서 무조건 받아올림이 일어나도록 구성
+        const a_ones = rnd(1, 9);
+        const b_ones = rnd(10 - a_ones, 9); // 합이 10 이상이 되도록 보장
+        const a_tens = rnd(1, 8);
+        const b_tens = rnd(1, 9 - a_tens);
+        a = a_tens * 10 + a_ones;
+        b = b_tens * 10 + b_ones;
+      } else { 
+        // 10% 확률: 받아올림 없음
+        const a_ones = rnd(0, 8);
+        const b_ones = rnd(0, 9 - a_ones);
+        const a_tens = rnd(1, 8);
+        const b_tens = rnd(1, 9 - a_tens);
+        a = a_tens * 10 + a_ones;
+        b = b_tens * 10 + b_ones;
+        if(a < 10) a += 10; // 두 자릿수 보정
+        if(b < 10) b += 10;
+      }
+      ans = a + b;
+      text = a + ' + ' + b + ' = ?';
+      return { op, ans, text };
+    }
+
+    if (op === 'lvl7_sub') {
+      // 두자리 - 두자리 뺄셈 (40% 확률 내에서 분기)
+      if (Math.random() < 0.90) { 
+        // 90% 확률: 받아내림 필수 존재
+        const a_ones = rnd(0, 8);
+        const b_ones = rnd(a_ones + 1, 9); // b의 일의 자리가 무조건 더 크게 설정
+        const a_tens = rnd(2, 9);
+        const b_tens = rnd(1, a_tens - 1); // a의 십의 자리가 무조건 더 크게 설정해 양수 보장
+        a = a_tens * 10 + a_ones;
+        b = b_tens * 10 + b_ones;
+      } else { 
+        // 10% 확률: 받아내림 없음
+        const a_ones = rnd(1, 9);
+        const b_ones = rnd(0, a_ones); // a의 일의 자리가 크거나 같게 설정
+        const a_tens = rnd(2, 9);
+        const b_tens = rnd(1, a_tens); // 결과가 항상 두 자리가 유지되도록 조절
+        a = a_tens * 10 + a_ones;
+        b = b_tens * 10 + b_ones;
+        if(a === b) { a += 10; } // 동일수 제외 안전장치
+      }
+      ans = a - b;
+      text = a + ' − ' + b + ' = ?';
+      return { op, ans, text };
+    }
+
+    if (op === 'lvl7_sub_single') {
+      // 두자리 - 한자리 뺄셈 (10% 확률)
+      a = rnd(10, 99);
+      b = rnd(1, 9);
+      if (b >= a) { a += 10; } // 음수 방지 안전장치
+      ans = a - b;
+      text = a + ' − ' + b + ' = ?';
+      return { op, ans, text };
+    }
+
+    if (op === 'lvl7_mul') {
+      // 곱셈구구 (10% 확률)
+      a = rnd(2, 9);
+      b = rnd(2, 9);
+      ans = a * b;
+      text = a + ' × ' + b + ' = ?';
+      return { op, ans, text };
+    }
+
+    // 기본 레벨 (Level 1 ~ 6) 처리 로직
+    const cfg=profile[op];
     if(op==='add'){
       if(cfg.carry&&Math.random()<cfg.carry){do{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);}while((a%10+b%10)<10);}
       else{a=rnd(cfg.a[0],cfg.a[1]);b=rnd(cfg.b[0],cfg.b[1]);}
@@ -253,7 +332,6 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
 
   async function handleAnswer(team, answer, key){
     if(!state.running||state.paused||state.win) return;
-    // 중복 방지: handled 표시
     await set(ref(db, ROOT+'/answers/'+key), {team, answer, handled:true});
     const T=team===1?state.t1:state.t2;
     if(!T.q) return;
@@ -276,7 +354,17 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
     updateDash();
   }
 
-  function pickOp(p){return p.ops[Math.floor(Math.random()*p.ops.length)];}
+  // 가중치 기반 오퍼레이션 선택 함수 (Level 7 가중치 엄밀 반영)
+  function pickOp(p){
+    if(p.grade === 7) {
+      const r = Math.random();
+      if(r < 0.40) return 'lvl7_add';         // 두자리 + 두자리 덧셈 (40%)
+      if(r < 0.80) return 'lvl7_sub';         // 두자리 - 두자리 뺄셈 (40%)
+      if(r < 0.90) return 'lvl7_sub_single';  // 두자리 - 한자리 뺄셈 (10%)
+      return 'lvl7_mul';                      // 곱셈구구 (10%)
+    }
+    return p.ops[Math.floor(Math.random()*p.ops.length)];
+  }
 
   function checkWin(){
     if(state.tug<=-100) doEnd(1);
@@ -311,14 +399,13 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
     state.sharedOp=pickOp(state.profile);
     state.t1.q=genQ(state.profile,state.sharedOp);
     state.t2.q=genQ(state.profile,state.sharedOp);
-    // 이전 답안 초기화
     await set(ref(db, ROOT+'/answers'), null);
     document.getElementById('btnStart').textContent='진행중…';
     document.getElementById('btnStart').disabled=true;
     document.getElementById('btnPause').disabled=false;
     document.getElementById('stateBadge').textContent='게임 진행중';
     document.getElementById('stateBadge').className='badge running';
-    addLog('게임 시작! '+state.profile.grade+'학년 ('+state.profile.label+') · '+dur+'초','🚩');
+    addLog('게임 시작! ' + state.profile.label + ' · ' + dur + '초', '🚩');
     await pushState();
     updateDash();
     if(state.timerId) clearInterval(state.timerId);
@@ -365,7 +452,7 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
 
   function updateDash(){
     const p=state.profile;
-    document.getElementById('d-grade').textContent=p?(p.grade+'학년 '+p.label):'-';
+    document.getElementById('d-grade').textContent=p?p.label:'-';
     document.getElementById('d-dur').textContent=state.duration?state.duration+'초':'-';
     document.getElementById('d-left').textContent=state.running?state.timeLeft+'초':'-';
     document.getElementById('d-t1s').textContent=state.t1.score;
@@ -390,7 +477,7 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
   function saveRanking(){
     const list=loadRank();
     const nowStr=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());};
-    const base={date:nowStr(),grade:state.profile?.grade||'-',duration:state.duration};
+    const base={date:nowStr(),grade:state.profile?.label||'-',duration:state.duration};
     list.push({...base,name:state.t1.name,result:state.win===1?'win':state.win===2?'lose':'draw',score:state.t1.score,rate:state.t1.attempts?Math.round(state.t1.correct/state.t1.attempts*100):0});
     list.push({...base,name:state.t2.name,result:state.win===2?'win':state.win===1?'lose':'draw',score:state.t2.score,rate:state.t2.attempts?Math.round(state.t2.correct/state.t2.attempts*100):0});
     saveRankData(list.slice(-80));
@@ -400,7 +487,7 @@ appId: "1:938654639542:web:c8ea735c7952a526680d17"
     const list=[...loadRank()].sort((a,b)=>b.score-a.score);
     const body=document.getElementById('rankBody');
     if(!list.length){body.innerHTML='<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">기록 없음</td></tr>';return;}
-    body.innerHTML=list.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+r.grade+'학년</td><td>'+r.name+'</td><td><span class="tag '+r.result+'">'+(r.result==='win'?'승':r.result==='lose'?'패':'무')+'</span></td><td><b>'+r.score+'</b></td><td>'+r.rate+'%</td></tr>').join('');
+    body.innerHTML=list.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.date+'</td><td>'+r.grade+'</td><td>'+r.name+'</td><td><span class="tag '+r.result+'">'+(r.result==='win'?'승':r.result==='lose'?'패':'무')+'</span></td><td><b>'+r.score+'</b></td><td>'+r.rate+'%</td></tr>').join('');
   }
 
   window.nav=function(sec,btn){
