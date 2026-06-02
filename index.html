@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Game</title>
+</head>
+<body>
+  <h1>🎮 Math Game</h1>
+  <p id="status">Firebase 연결 중...</p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC5T4KvABXWy3-dlTkqBpNxAF71g-VCLk",
+      authDomain: "math-game-985db.firebaseapp.com",
+      databaseURL: "https://math-game-985db-default-rtdb.firebaseio.com",
+      projectId: "math-game-985db",
+      storageBucket: "math-game-985db.firebasestorage.app",
+      messagingSenderId: "938654639542",
+      appId: "1:938654639542:web:c8ea735c7952a526680d17",
+      measurementId: "G-F2QC85RT56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 연결 테스트
+    const testRef = ref(db, 'test');
+    set(testRef, { message: "연결 성공!", time: Date.now() });
+
+    onValue(testRef, (snapshot) => {
+      const data = snapshot.val();
+      document.getElementById('status').textContent = 
+        "✅ Firebase 연결 성공: " + data.message;
+    });
+  </script>
+</body>
+</html>
